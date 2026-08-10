@@ -1,0 +1,1 @@
+RAG chatbot answering questions over NiftyBridge documentation (FastAPI + Claude + Qdrant)
