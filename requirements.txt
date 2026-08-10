@@ -16,7 +16,7 @@ sentence-transformers==5.7.0
 qdrant-client==1.19.0
 
 # --- PDF parsing ---
-pypdf==6.15.0
+pdfplumber==0.11.9
 
 # --- Testing ---
 pytest==9.1.1
