@@ -1,0 +1,30 @@
+# Environment / secrets
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Project-specific
+qdrant_storage/
+*.log
+full_text_debug.txt
