@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #6b7f99;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.window {
+    width: 600px;
+    max-width: 90vw;
+    background: #ece9d8;
+    border: 2px solid #0a246a;
+    border-radius: 8px;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.title-bar {
+    background: linear-gradient(to bottom, #2a6fd6, #0a246a);
+    padding: 8px 12px;
+}
+
+.title-bar-text {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.content {
+    padding: 20px;
+}
+
+.field-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #333;
+}
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    border: 2px inset #b0b0b0;
+    border-radius: 3px;
+    resize: vertical;
+}
+
+button {
+    margin-top: 10px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    background: linear-gradient(to bottom, #f5f5f5, #d4d0c8);
+    border: 2px outset #d4d0c8;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:active {
+    border-style: inset;
+}
+
+button:disabled {
+    color: #888;
+    cursor: default;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #555;
+    min-height: 16px;
+}
+
+.panel {
+    margin-top: 16px;
+    padding: 12px;
+    background: white;
+    border: 2px inset #b0b0b0;
+    border-radius: 3px;
+}
+
+.panel h3 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #0a246a;
+}
+
+.answer-output {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #222;
+    white-space: pre-wrap;
+}
+
+.sources-output {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: #444;
+}
