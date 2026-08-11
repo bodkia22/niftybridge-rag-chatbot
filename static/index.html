@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nifty Bridge ToS Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <span class="title-bar-text">Nifty Bridge — Terms of Service Assistant</span>
+        </div>
+
+        <div class="content">
+            <label for="question-input" class="field-label">Ask a question about the Terms of Service</label>
+            <textarea id="question-input" placeholder="e.g. How much advance notice for fee increases?"
+                rows="3"></textarea>
+
+            <button id="ask-button">Ask</button>
+
+            <div id="status" class="status"></div>
+
+            <div class="panel">
+                <h3>Answer</h3>
+                <div id="answer-output" class="answer-output">Ask a question to see the answer here.</div>
+            </div>
+
+            <div class="panel">
+                <h3>Sources</h3>
+                <ul id="sources-output" class="sources-output"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
