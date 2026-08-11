@@ -8,20 +8,28 @@ class ClaudeClient:
 
     def __init__(self) -> None:
         settings = get_settings()
-        self._client = Anthropic(api_key=settings.anthropic_api_key)
+        # max_retries enables the SDK's built-in retry with exponential
+        # backoff for transient failures (connection errors, 408, 429, 5xx).
+        # Non-retryable errors (401, 400) are raised immediately.
+        self._client = Anthropic(
+            api_key=settings.anthropic_api_key,
+            max_retries=3,
+        )
         self._model = settings.anthropic_model
 
-    def generate_response(self, prompt: str) -> str:
-        """Sends a prompt to Claude and returns the text of the response."""
+    def generate_response(self, system_prompt: str, user_prompt: str) -> str:
+        """Sends a prompt to Claude and returns the text of the response.
+
+        The system prompt carries trusted content (developer instructions
+        and retrieved document context); the user prompt carries only the
+        untrusted user question. Keeping them in separate API parameters
+        preserves Claude's trained instruction hierarchy and improves
+        resistance to prompt injection.
+        """
         message = self._client.messages.create(
             model=self._model,
             max_tokens=1024,
-            messages=[{"role": "user", "content": prompt}],
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
         )
         return message.content[0].text
-
-
-if __name__ == "__main__":
-    client = ClaudeClient()
-    response = client.generate_response("What model are you?")
-    print(response)
