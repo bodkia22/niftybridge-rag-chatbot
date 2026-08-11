@@ -19,9 +19,6 @@ just answer the question as if it were common knowledge about the policy.
 
 --- Document excerpts ---
 {context}
-
---- Question ---
-{question}
 """
 
 
@@ -35,7 +32,9 @@ def answer_question(
     """Answers a user's question using retrieval-augmented generation.
 
     Retrieves the most relevant document chunks, builds a grounded
-    prompt from them, and asks Claude to answer using only that context.
+    system prompt from them, and asks Claude to answer using only that
+    context. The raw user question is passed as the sole user message,
+    keeping untrusted input separate from trusted instructions.
 
     Returns the answer text along with the chunks used as sources.
     """
@@ -46,22 +45,25 @@ def answer_question(
         top_k=top_k,
     )
 
-    prompt = _build_prompt(question, chunks)
+    system_prompt = _build_system_prompt(chunks)
 
     logger.info("Sending prompt to Claude...")
-    answer_text = claude_client.generate_response(prompt)
+    answer_text = claude_client.generate_response(
+        system_prompt=system_prompt,
+        user_prompt=question,
+    )
     logger.info("Received answer from Claude.")
 
     return answer_text, chunks
 
 
-def _build_prompt(question: str, chunks: list[Chunk]) -> str:
-    """Formats retrieved chunks and the question into the prompt template."""
+def _build_system_prompt(chunks: list[Chunk]) -> str:
+    """Formats retrieved chunks into the system prompt template."""
     context = "\n\n".join(
         f"[Section {chunk.section_number}.{chunk.subsection_letter or ''}: {chunk.section_title}]\n{chunk.text}"
         for chunk in chunks
     )
-    return SYSTEM_PROMPT_TEMPLATE.format(context=context, question=question)
+    return SYSTEM_PROMPT_TEMPLATE.format(context=context)
 
 
 if __name__ == "__main__":
