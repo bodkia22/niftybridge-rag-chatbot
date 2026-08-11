@@ -38,13 +38,14 @@ if __name__ == "__main__":
     embedding_model = EmbeddingModel()
     qdrant_repository = QdrantRepository()
 
-    question = "How much advance notice does Nifty Bridge give before increasing fees?"
+    question = "What is the maximum dollar amount Nifty Bridge is liable for?"
     chunks = retrieve_relevant_chunks(
         question=question,
         embedding_model=embedding_model,
         qdrant_repository=qdrant_repository,
-        top_k=settings.retrieval_top_k,
+        top_k=49,
     )
 
     for i, chunk in enumerate(chunks, start=1):
-        print(f"{i}. Section {chunk.section_number}: {chunk.subsection_letter}: {chunk.section_title}")
+        label = f"{chunk.section_number}.{chunk.subsection_letter or ''}".rstrip(".")
+        print(f"{i}. Section {label}: {chunk.section_title}")
