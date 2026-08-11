@@ -61,13 +61,16 @@ class QdrantRepository:
 
 
 def _chunk_id(chunk: Chunk) -> str:
-    """Derives a deterministic UUID from a chunk's section identity.
+    """Derives a deterministic UUID from a chunk's identity.
 
-    Using the same key for the same logical chunk (e.g. "12" or "4_b")
-    ensures re-ingesting the same document overwrites existing points
-    rather than duplicating them.
+    Uses section/subsection when available. Falls back to including a
+    slice of the chunk text, since chunks produced by paragraph or
+    sentence-group splitting share the same section/subsection (None)
+    and would otherwise collide, causing later chunks to silently
+    overwrite earlier ones during upsert.
     """
-    key = f"{chunk.section_number}_{chunk.subsection_letter or 'full'}"
+    letter = chunk.subsection_letter or "full"
+    key = f"{chunk.section_number}_{letter}_{chunk.text[:50]}"
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, key))
 
 
