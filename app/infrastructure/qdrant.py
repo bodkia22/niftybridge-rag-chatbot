@@ -59,6 +59,10 @@ class QdrantRepository:
         ).points
         return [Chunk(**point.payload) for point in results]
 
+    def count_points(self) -> int:
+        """Returns the number of points currently stored in the collection."""
+        info = self._client.get_collection(self._collection_name)
+        return info.points_count or 0
 
 def _chunk_id(chunk: Chunk) -> str:
     """Derives a deterministic UUID from a chunk's identity.
