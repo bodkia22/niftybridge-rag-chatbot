@@ -72,6 +72,18 @@ def _chunk_id(chunk: Chunk) -> str:
 
 
 if __name__ == "__main__":
+    from app.infrastructure.embeddings import EmbeddingModel
+
+    embedding_model = EmbeddingModel()
     repo = QdrantRepository()
-    repo.ensure_collection_exists()
-    print(f"Collection '{repo._collection_name}' is ready.")
+
+    query = "What is the maximum liability of Nifty Bridge?"
+    query_vector = embedding_model.embed_query(query)
+
+    results = repo.search(query_vector, top_k=14)
+
+    print(f"Query: {query}\n")
+    for chunk in results:
+        print(f"--- Section {chunk.section_number}: {chunk.section_title} ---")
+        print(chunk.text[:200])
+        print()
