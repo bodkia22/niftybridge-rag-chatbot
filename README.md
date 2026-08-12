@@ -291,8 +291,10 @@ pytest
 ```
 
 Covers the chunking logic (including the recursive oversized-section splitting), the
-deterministic chunk-ID regression test, and the `/api/chat` and `/api/health`
-endpoints (with the embedding model, Qdrant, and Claude client mocked out).
+deterministic chunk-ID regression test, the `/api/chat` and `/api/health`
+endpoints (with the embedding model, Qdrant, and Claude client mocked out), and the
+503 response returned when Qdrant is unreachable
+(`test_chat_returns_503_when_qdrant_unreachable`).
 
 ## 7. Known limitations
 
@@ -316,10 +318,13 @@ endpoints (with the embedding model, Qdrant, and Claude client mocked out).
   deterministic retrieval — the retrieved candidates are fixed per question, but
   which of them the model decides it actually leaned on is not guaranteed to be
   perfectly stable.
-- **No error-handling layer beyond the Anthropic SDK's built-in retries.** A
-  sustained Qdrant outage, or a Claude failure that survives the SDK's retry policy,
-  currently surfaces to the client as a generic 500 rather than a handled,
-  user-friendly error.
+- **Error handling is limited to the Anthropic SDK's built-in retries plus a 503
+  mapping at the API boundary.** `POST /api/chat` catches Claude failures that
+  survive the SDK's retry policy, and Qdrant failures — both bad HTTP responses and
+  connection-level failures (unreachable endpoint, timeout), via qdrant-client's
+  shared `ApiException` base class — and returns a 503 with a clear message instead
+  of an unhandled 500. Failures outside these two boundaries would still surface as
+  a generic 500 rather than a handled, user-friendly error.
 - **No rate limiting or authentication on the API.** Acceptable for a test
   assignment; would be required before any production exposure.
 - **The frontend renders the model's answer as parsed Markdown without HTML
