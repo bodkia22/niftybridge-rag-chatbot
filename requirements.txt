@@ -1,7 +1,6 @@
 # --- Web framework ---
 fastapi==0.141.1
 uvicorn[standard]==0.52.1
-python-multipart==0.0.32
 
 # --- Configuration ---
 pydantic-settings==2.15.0
