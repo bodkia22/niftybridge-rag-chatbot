@@ -76,21 +76,3 @@ def _chunk_id(chunk: Chunk) -> str:
     letter = chunk.subsection_letter or "full"
     key = f"{chunk.section_number}_{letter}_{chunk.text[:50]}"
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, key))
-
-
-if __name__ == "__main__":
-    from app.infrastructure.embeddings import EmbeddingModel
-
-    embedding_model = EmbeddingModel()
-    repo = QdrantRepository()
-
-    query = "What is the maximum liability of Nifty Bridge?"
-    query_vector = embedding_model.embed_query(query)
-
-    results = repo.search(query_vector, top_k=14)
-
-    print(f"Query: {query}\n")
-    for chunk in results:
-        print(f"--- Section {chunk.section_number}: {chunk.section_title} ---")
-        print(chunk.text[:200])
-        print()
