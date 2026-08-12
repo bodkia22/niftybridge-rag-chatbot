@@ -213,18 +213,3 @@ def _page_for_offset(offset: int, offset_to_page: list[tuple[int, int]]) -> int:
         page_number = page
 
     return page_number
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-
-    from app.services.pdf_parser import extract_text_by_page
-
-    pages = extract_text_by_page(Path("data/NiftyBridge.pdf"))
-    chunks = split_into_sections(pages)
-
-    print(f"Total chunks: {len(chunks)}")
-    for chunk in chunks:
-        letter = chunk.subsection_letter or ""
-        label = f"{chunk.section_number}.{letter}"
-        print(f"--- {label} {chunk.section_title} (page {chunk.page_number}, {len(chunk.text)} chars) ---")

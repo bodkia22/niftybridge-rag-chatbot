@@ -64,31 +64,3 @@ def _build_system_prompt(chunks: list[Chunk]) -> str:
         for chunk in chunks
     )
     return SYSTEM_PROMPT_TEMPLATE.format(context=context)
-
-
-if __name__ == "__main__":
-    from app.core.config import get_settings
-    from app.core.logging import setup_logging
-
-    settings = get_settings()
-    setup_logging(settings.log_level)
-
-    embedding_model = EmbeddingModel()
-    qdrant_repository = QdrantRepository()
-    claude_client = ClaudeClient()
-
-    question = "How much advance notice does Nifty Bridge give before increasing fees?"
-    answer, sources = answer_question(
-        question=question,
-        embedding_model=embedding_model,
-        qdrant_repository=qdrant_repository,
-        claude_client=claude_client,
-        top_k=settings.retrieval_top_k,
-    )
-
-    print(f"Question: {question}\n")
-    print(f"Answer: {answer}\n")
-    print("Sources:")
-    for chunk in sources:
-        label = f"{chunk.section_number}.{chunk.subsection_letter or ''}".rstrip(".")
-        print(f"- Section {label}: {chunk.section_title} (page {chunk.page_number})")

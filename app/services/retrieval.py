@@ -26,26 +26,3 @@ def retrieve_relevant_chunks(
     logger.info("Found %d relevant chunks.", len(results))
 
     return results
-
-
-if __name__ == "__main__":
-    from app.core.config import get_settings
-    from app.core.logging import setup_logging
-
-    settings = get_settings()
-    setup_logging(settings.log_level)
-
-    embedding_model = EmbeddingModel()
-    qdrant_repository = QdrantRepository()
-
-    question = "What is the maximum dollar amount Nifty Bridge is liable for?"
-    chunks = retrieve_relevant_chunks(
-        question=question,
-        embedding_model=embedding_model,
-        qdrant_repository=qdrant_repository,
-        top_k=49,
-    )
-
-    for i, chunk in enumerate(chunks, start=1):
-        label = f"{chunk.section_number}.{chunk.subsection_letter or ''}".rstrip(".")
-        print(f"{i}. Section {label}: {chunk.section_title}")
