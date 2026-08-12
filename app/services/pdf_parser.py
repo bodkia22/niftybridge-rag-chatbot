@@ -15,12 +15,3 @@ def extract_text_by_page(pdf_path: Path) -> list[PageContent]:
             page_contents.append(PageContent(page_number=page_number, text=text))
 
     return page_contents
-
-
-if __name__ == "__main__":
-    # Example usage
-    pdf_path = Path("data/NiftyBridge.pdf")
-    page_contents = extract_text_by_page(pdf_path)
-
-    for page_content in page_contents:
-        print(page_content.text)
