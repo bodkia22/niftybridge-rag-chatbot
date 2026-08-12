@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
+from qdrant_client.http.exceptions import ApiException
 
 from app.core.dependencies import get_claude_client, get_embedding_model, get_qdrant_repository
 from app.main import app
@@ -51,3 +52,24 @@ def test_chat_returns_answer_and_sources():
     body = response.json()
     assert body["answer"] == "Nifty Bridge gives 14 days notice."
     assert body["sources"] == [{"section": "3.f", "title": "FEES", "page": 1}]
+
+def test_chat_returns_503_when_qdrant_unreachable():
+    mock_embedding_model = MagicMock()
+    mock_embedding_model.embed_query.return_value = [0.0] * 768
+
+    mock_qdrant_repository = MagicMock()
+    mock_qdrant_repository.search.side_effect = ApiException("Connection refused")
+
+    mock_claude_client = MagicMock()
+
+    app.dependency_overrides[get_embedding_model] = lambda: mock_embedding_model
+    app.dependency_overrides[get_qdrant_repository] = lambda: mock_qdrant_repository
+    app.dependency_overrides[get_claude_client] = lambda: mock_claude_client
+
+    try:
+        client = TestClient(app)
+        response = client.post("/api/chat", json={"question": "test question"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503

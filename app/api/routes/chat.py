@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 import httpx
 from anthropic import APIError as AnthropicAPIError
-from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.exceptions import ApiException
 
 from app.core.config import Settings, get_settings
 from app.core.dependencies import get_claude_client, get_embedding_model, get_qdrant_repository
@@ -42,7 +42,7 @@ def chat(
             status_code=503,
             detail="The language model is temporarily unavailable. Please try again shortly.",
         )
-    except (UnexpectedResponse, httpx.HTTPError):
+    except (ApiException, httpx.HTTPError):
         logger.exception("Qdrant request failed")
         raise HTTPException(
             status_code=503,
