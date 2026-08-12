@@ -11,6 +11,12 @@ section(s) it came from.
 **Stack:** FastAPI + Anthropic Claude + Qdrant + multilingual sentence-transformers
 embeddings.
 
+**Live demo:** https://niftybridge-rag-chatbot-production.up.railway.app
+
+For this deployment, Qdrant runs on Qdrant Cloud (free tier) instead of the local
+Docker Qdrant used in development — `QDRANT_URL`/`QDRANT_API_KEY` in `.env.example`
+already support pointing at either.
+
 ## 2. Tech stack and why
 
 - **FastAPI** — the required backend framework. Async-first, automatic OpenAPI docs
@@ -152,6 +158,11 @@ structured response fails to parse (rare, but possible), the service falls back 
 plain-text Claude call using all retrieved chunks as sources, so a single malformed
 tool call degrades gracefully instead of failing the request outright.
 
+**Basic request validation on the question field.** `ChatRequest.question` uses a
+Pydantic `Field` with `min_length=1, max_length=2000`, so an empty question or an
+unreasonably long one is rejected by FastAPI before it reaches the embedding model or
+Claude.
+
 ## 5. Installation and running
 
 ### With Docker (recommended)
@@ -286,6 +297,10 @@ endpoints (with the embedding model, Qdrant, and Claude client mocked out).
 - **The frontend renders the model's answer as parsed Markdown without HTML
   sanitization.** A production deployment should run the parsed output through a
   sanitizer (e.g. DOMPurify) before inserting it into the DOM.
+- **The optional `POST /api/upload` endpoint from the assignment brief was not
+  implemented.** Development time was prioritized on the core RAG pipeline,
+  structured tool-use sourcing, and fixing a chunking edge case found during
+  self-review, rather than the optional upload feature.
 
 ## 8. Project structure
 
