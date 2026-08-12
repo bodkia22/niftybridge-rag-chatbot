@@ -92,7 +92,9 @@ def _split_by_letters(
     """Splits section text into one chunk per lettered subsection.
 
     Each chunk is prefixed with the parent section header so embeddings
-    retain context even when only one subsection is retrieved.
+    retain context even when only one subsection is retrieved. Any
+    subsection that is itself still oversized (e.g. a single unbroken
+    block of prose with no paragraph breaks) is split further.
     """
     header = f"{section_number}. {section_title}"
     chunks = []
@@ -108,15 +110,14 @@ def _split_by_letters(
         )
         subsection_body = section_text[sub_start:sub_end].strip()
 
-        chunks.append(
-            Chunk(
-                section_number=section_number,
-                section_title=section_title,
-                subsection_letter=subsection_letter,
-                text=f"{header}\n{subsection_body}",
-                page_number=page_number,
-            )
+        chunk = Chunk(
+            section_number=section_number,
+            section_title=section_title,
+            subsection_letter=subsection_letter,
+            text=f"{header}\n{subsection_body}",
+            page_number=page_number,
         )
+        chunks.extend(_split_if_oversized(chunk, header))
 
     return chunks
 
@@ -127,20 +128,50 @@ def _split_by_paragraphs(
     """Splits section text into one chunk per paragraph.
 
     Used when a section has no lettered subsections but does have
-    double-newline paragraph breaks to split on.
+    double-newline paragraph breaks to split on. Any paragraph that is
+    itself still oversized is split further.
     """
     header = f"{section_number}. {section_title}"
+    chunks = []
 
-    return [
-        Chunk(
+    for paragraph in paragraphs:
+        chunk = Chunk(
             section_number=section_number,
             section_title=section_title,
             subsection_letter=None,
             text=f"{header}\n{paragraph}",
             page_number=page_number,
         )
-        for paragraph in paragraphs
-    ]
+        chunks.extend(_split_if_oversized(chunk, header))
+
+    return chunks
+
+
+def _split_if_oversized(chunk: Chunk, header: str) -> list[Chunk]:
+    """Splits a chunk further via sentence grouping if it's still oversized.
+
+    Letter- and paragraph-based splitting can still leave a single
+    subsection or paragraph that's a large unbroken block of prose (e.g.
+    a list of restrictions with no internal breaks). Sentence grouping
+    is used directly here rather than the full three-level cascade,
+    since a chunk that's already past the letter/paragraph stage has, by
+    definition, no further structural markers left to split on.
+
+    Note: chunks produced this way lose their subsection_letter, since
+    the original subsection had to be broken up further — the parent
+    section number is preserved, but fine-grained navigation for this
+    specific edge case is slightly less precise as a result.
+    """
+    if len(chunk.text) <= MAX_CHUNK_LENGTH_CHARS:
+        return [chunk]
+
+    # Strip the header back off before re-grouping, since
+    # _split_by_sentence_groups adds its own header prefix.
+    body = chunk.text.removeprefix(f"{header}\n")
+
+    return _split_by_sentence_groups(
+        chunk.section_number, chunk.section_title, body, chunk.page_number
+    )
 
 
 def _split_by_sentence_groups(
@@ -152,6 +183,10 @@ def _split_by_sentence_groups(
     subsections nor paragraph breaks to split on. Consecutive sentences
     are grouped until the target size is reached, keeping related
     clauses together rather than cutting at an arbitrary character count.
+
+    A single "sentence" that is itself still oversized (e.g. a long
+    semicolon-separated list with only one terminal period, as seen in
+    real ToS restriction clauses) is further split on semicolons.
     """
     header = f"{section_number}. {section_title}"
 
@@ -159,6 +194,15 @@ def _split_by_sentence_groups(
     # sentence splitting is not thrown off by mid-sentence line wraps.
     normalized_text = re.sub(r"\s+", " ", section_text).strip()
     sentences = re.split(r"(?<=[.!?])\s+", normalized_text)
+
+    # A sentence with no internal punctuation to split on (e.g. a long
+    # semicolon-separated clause list) would otherwise stay as one
+    # oversized unit — break it into smaller pieces on semicolons first.
+    sentences = [
+        piece
+        for sentence in sentences
+        for piece in _split_on_semicolons_if_oversized(sentence)
+    ]
 
     groups: list[str] = []
     current_group: list[str] = []
@@ -186,6 +230,21 @@ def _split_by_sentence_groups(
         )
         for group in groups
     ]
+
+
+def _split_on_semicolons_if_oversized(sentence: str) -> list[str]:
+    """Splits an oversized "sentence" on semicolons as a last resort.
+
+    Legal clause lists (e.g. restrictions "(i) ...; (ii) ...; (iii) ...")
+    are often written as a single grammatical sentence with only one
+    terminal period, so period-based sentence splitting leaves them
+    intact as one oversized unit. Semicolons are the next-most-reliable
+    clause boundary in this kind of text.
+    """
+    if len(sentence) <= MAX_CHUNK_LENGTH_CHARS:
+        return [sentence]
+
+    return [clause.strip() for clause in sentence.split(";") if clause.strip()]
 
 
 def _combine_pages(pages: list[PageContent]) -> tuple[str, list[tuple[int, int]]]:
